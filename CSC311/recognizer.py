@@ -5,7 +5,7 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import openai as OpenAI
+from openai import OpenAI
 
 from preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
 from topics import TOPIC_MAP, TOPICS, Topic
@@ -210,7 +210,7 @@ class Recognizer:
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64;{b64}",
+                                "url": f"data:image/jpeg;base64,{b64}",
                                 "detail": "high",
                             },
                         },
@@ -239,31 +239,31 @@ class Recognizer:
                     text = stripped
                     break
 
-            try:
-                data = json.loads(text)
-            except json.JSONDecodeError:
-                return RecognitionResult(
-                    image_path=path,
-                    topics=[],
-                    confidence={},
-                    explanation=f"Model returned unparsable response: {raw[:200]}",
-                    subtopics=[],
-                    source_type=source_type,
-                    raw_response=raw,
-                )
-
-            topic_keys = data.get("topics", [])
-            topics = [TOPIC_MAP[k] for k in topic_keys if k in TOPIC_MAP]
-            confidence = {k: float(v) for k, v in data.get("confidence", {}).items()}
-            explanation = data.get("explanation", "")
-            subtopics = data.get("subtopics", [])
-
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
             return RecognitionResult(
                 image_path=path,
-                topics=topics,
-                confidence=confidence,
-                explanation=explanation,
-                subtopics=subtopics,
+                topics=[],
+                confidence={},
+                explanation=f"Model returned unparsable response: {raw[:200]}",
+                subtopics=[],
                 source_type=source_type,
                 raw_response=raw,
             )
+
+        topic_keys = data.get("topics", [])
+        topics = [TOPIC_MAP[k] for k in topic_keys if k in TOPIC_MAP]
+        confidence = {k: float(v) for k, v in data.get("confidence", {}).items()}
+        explanation = data.get("explanation", "")
+        subtopics = data.get("subtopics", [])
+
+        return RecognitionResult(
+            image_path=path,
+            topics=topics,
+            confidence=confidence,
+            explanation=explanation,
+            subtopics=subtopics,
+            source_type=source_type,
+            raw_response=raw,
+        )
