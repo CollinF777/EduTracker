@@ -156,7 +156,7 @@ def preprocess_frame(frame: np.ndarray, source_type: str="auto", deskew_image: b
             source_type = "paper"
 
     if deskew_image:
-        img = deskew_image(img)
+        img = deskew(img)
 
     if source_type == "whiteboard":
         img = enhance_whiteboard(img)
