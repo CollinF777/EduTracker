@@ -4,11 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import cv2
-import numpy as np
 from openai import OpenAI
 
-from preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
-from topics import TOPIC_MAP, TOPICS, Topic
+from .preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
+from .topics import TOPIC_MAP, TOPICS, Topic
 
 # Makes a dataclass to hold our results
 @dataclass
@@ -100,7 +99,7 @@ def _build_system_prompt() -> str:
 # Subject recognizer using GPT-4o vision.
 class Recognizer:
     def __init__(self, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto"):
-        key = api_key or os.environ.get("OPENAPI_API_KEY")
+        key = api_key or os.environ.get("OPENAI_API_KEY")
         if not key:
             raise ValueError(
                 "No OpenAI API key provided. Set OPENAI_API_KEY environment variable "
@@ -202,7 +201,8 @@ class Recognizer:
         response = self._client.chat.completions.create(
             model=self._model,
             max_tokens=512,
-            messages=[
+            # The other comment is just to silence an annoying ide pop up
+            messages=[ # type: ignore[arg-type]
                 {"role": "system", "content": self._system_prompt},
                 {
                     "role": "user",
