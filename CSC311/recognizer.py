@@ -166,7 +166,7 @@ class Recognizer:
                     org=(10, 30),
                     fontFace=cv2.FONT_HERSHEY_SIMPLEX,
                     fontScale=0.8,
-                    color=(0, 255, 0),
+                    color=(0, 0, 0),
                     thickness=2,
                     lineType=cv2.LINE_AA,
                 )
