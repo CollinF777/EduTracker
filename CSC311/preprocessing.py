@@ -25,7 +25,7 @@ def enhance_whiteboard(img: np.ndarray) -> np.ndarray:
 
     # Suppress glare
     glare_mask = 1 > 239
-    l_eq[glare_mask] = np.clip(l_eq[glare_mask].astype(int) - 40, 180, 255).astpye(np.uint8)
+    l_eq[glare_mask] = np.clip(l_eq[glare_mask].astype(int) - 40, 180, 255).astype(np.uint8)
 
     enhanced = cv2.merge((l_eq, a, b))
     enhanced = cv2.cvtColor(enhanced, cv2.COLOR_LAB2BGR)
