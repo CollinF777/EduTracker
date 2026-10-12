@@ -4,8 +4,8 @@ import gradio as gr
 from dotenv import load_dotenv
 load_dotenv()
 
-from CSC311.recognizer import Recognizer
-from CSC311.preprocessing import preprocess_frame, to_base64_jpeg
+from edutracker.recognizer import Recognizer
+from edutracker.preprocessing import preprocess_frame, to_base64_jpeg
 # Initialize one recognizer at startup, this will be reused across requests
 recognizer = Recognizer()
 

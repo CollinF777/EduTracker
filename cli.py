@@ -16,11 +16,11 @@ import sys
 from dotenv import load_dotenv
 load_dotenv()
 
-from CSC311.recognizer import Recognizer
+from edutracker.recognizer import Recognizer
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Identify CSC311 topics in whiteboard/handwritten photos."
+        description="Identify edutracker topics in whiteboard/handwritten photos."
     )
     parser.add_argument(
         "images",

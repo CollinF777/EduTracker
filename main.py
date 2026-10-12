@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from CSC311.recognizer import Recognizer
+from edutracker.recognizer import Recognizer
 
 load_dotenv()
 
