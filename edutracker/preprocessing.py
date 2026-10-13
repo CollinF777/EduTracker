@@ -24,7 +24,7 @@ def enhance_whiteboard(img: np.ndarray) -> np.ndarray:
     l_eq = clahe.apply(l)
 
     # Suppress glare
-    glare_mask = 1 > 239
+    glare_mask = l > 239
     l_eq[glare_mask] = np.clip(l_eq[glare_mask].astype(int) - 40, 180, 255).astype(np.uint8)
 
     enhanced = cv2.merge((l_eq, a, b))
