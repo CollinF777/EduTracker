@@ -7,7 +7,7 @@ import cv2
 from openai import OpenAI
 
 from .preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
-from .topics import TOPIC_MAP, TOPICS, Topic
+from .courses import Course, Topic, get_course
 
 # Makes a dataclass to hold our results
 @dataclass
@@ -53,7 +53,7 @@ class RecognitionResult:
         }
 
 # Prompt for ai
-def _build_system_prompt() -> str:
+def _build_system_prompt(course: Course) -> str:
     """
     Build a block of text that lists every topic key and label
     This will get injected into the prompt so the model knows what topics there are
@@ -61,7 +61,7 @@ def _build_system_prompt() -> str:
     side note: does anybody know why this comment is gray instead of green like the other multi line comments
     I dropped description because I dont want to spend a ton of tokens everytime and the model should know these things anyways
     """
-    topic_block = "\n".join(f' "{t.key}: "{t.label}"' for t in TOPICS)
+    topic_block = "\n".join(f' "{t.key}: "{t.label}"' for t in course.topics)
     """
     Build a block of text that lists visual cues for each topic
     This tells the model what to look for in the image for each topic
@@ -70,8 +70,13 @@ def _build_system_prompt() -> str:
     For now this is going to be cut to save token usage but depending on the quality of response it can be added back in
     """
     # cues_block = "\n".join(f' {t.key}: {"; ".join(t.visual_cues)}' for t in TOPICS)
+    # Examples are optional per course, its just there to help the model understand what a subtopic is
+    examples = ""
+    if course.example_subtopics:
+        quoted=", ".join(f'"{s}"' for s in course.example_subtopics)
+        examples = f" (e.g. {quoted})"
     # This is the ai prompt, if cues get added back in them add it below topic taxonomy
-    return f"""You are an expert teaching assistant for CSC311 (Computer Organization and Architecture). 
+    return f"""You are an expert teaching assistant for {course.code} ({course.name}). 
     
     Your task is to look at the photo provided (whiteboard, handwritten paper, etc) and identify which CSC311
     topic(s) are visible. THe image may be noisy, at an angle, or partially legible - do your best
@@ -91,14 +96,14 @@ def _build_system_prompt() -> str:
     Rules:
     - "topics" must be a list of keys from taxonomy above (empty list [] if nothing matches CSC311)
     - "confidence" values: 0.9+ = very clear, 0.7-0.9 = reasonable clear, 0.5-0.7 = partially visible/uncertain
-    - "subtopics" are specific named concepts spotted (e.g. "De Morgan's Law", "D Flip-Flop", "Booths Algorithm", "ISZ instruction")
-    - If the image is unreadable or clearly unrelated to CSC311, return topics: []
+    - "subtopics" are specific named concepts spotted {examples}
+    - If the image is unreadable or clearly unrelated to {course.code}, return topics: []
     - Do NOT include any text outside the JSON object
     """
 
 # Subject recognizer using GPT-4o vision.
 class Recognizer:
-    def __init__(self, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto"):
+    def __init__(self, course: Course | None = None, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto"):
         key = api_key or os.environ.get("OPENAI_API_KEY")
         if not key:
             raise ValueError(
@@ -106,11 +111,12 @@ class Recognizer:
                 "or pass api_key= to Recognizer()."
             )
 
+        self.course = course if isinstance(course, Course) else get_course(course)
         self._client = OpenAI(api_key=key)
         self._model = model
         self._preprocess = preprocess
         self._source_type = source_type
-        self._system_prompt = _build_system_prompt()
+        self._system_prompt = _build_system_prompt(self.course)
 
     # Recognize topics from a single image file
     def recognize(self, image_path: str) -> RecognitionResult:
@@ -196,6 +202,13 @@ class Recognizer:
         b64 = to_base64_jpeg(img)
         return self._call_api(b64, source_type, label="<camera>")
 
+    # Recognize topics from an image that is already in memory (basically for gradio uploads)
+    # This is a public method to do _call_api so callers dont need to go into a private method
+    def recognize_frame(self, frame, label: str = "<frame>") -> RecognitionResult:
+        img, source_type = preprocess_frame(frame, source_type=self._source_type)
+        b64 = to_base64_jpeg(img)
+        return self._call_api(b64, source_type, label=label)
+
     # Send a base64 image to GPT-4o and return a RecognitionResult
     def _call_api(self, b64: str, source_type: str, label: str) -> RecognitionResult:
         response = self._client.chat.completions.create(
@@ -217,7 +230,7 @@ class Recognizer:
                         {
                             "type": "text",
                             "text": (
-                                "Identify which CSC311 topic(s) are shown in this photo. "
+                                f"Identify which {self.course.code} topic(s) are shown in this photo. "
                                 "This may be a whiteboard, handwritten paper, or some other type of drawing"
                             ),
                         },
@@ -253,7 +266,7 @@ class Recognizer:
             )
 
         topic_keys = data.get("topics", [])
-        topics = [TOPIC_MAP[k] for k in topic_keys if k in TOPIC_MAP]
+        topics = [self.course.topic_map[k] for k in topic_keys if k in self.course.topic_map]
         confidence = {k: float(v) for k, v in data.get("confidence", {}).items()}
         explanation = data.get("explanation", "")
         subtopics = data.get("subtopics", [])
