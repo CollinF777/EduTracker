@@ -4,22 +4,25 @@ import gradio as gr
 from dotenv import load_dotenv
 load_dotenv()
 
+from edutracker.courses import load_courses
 from edutracker.recognizer import Recognizer
 from edutracker.preprocessing import preprocess_frame, to_base64_jpeg
-# Initialize one recognizer at startup, this will be reused across requests
-recognizer = Recognizer()
+
+COURSES = load_courses()
+# Initialize a recognizer for each course on startup which will be used across requests
+RECOGNIZERS = {code: Recognizer(course=course) for code, course in COURSES.items()}
 
 # Gradio calls this with a numpy array when user uploads or captures an image
-def recognize_image(image) -> tuple[str, str]:
+def recognize_image(image, course_code) -> tuple[str, str]:
     if image is None:
         return "", "No image provided."
-    img, source_type = preprocess_frame(image, source_type="auto")
-    b64 = to_base64_jpeg(img)
-
-    result = recognizer._call_api(b64, source_type, label="<upload>")
+    if course_code not in RECOGNIZERS:
+        return "", "Please select a course first"
+    recognizer = RECOGNIZERS[course_code]
+    result = recognizer.recognize_frame(image, label="<upload>")
 
     if not result.topics:
-        return "No CSC311 topic detected.", result.explanation
+        return f"No {course_code} topic detected.", result.explanation
 
     # Build output string
     lines = []
@@ -44,6 +47,14 @@ with gr.Blocks(title="EduTracker") as demo:
         """
     )
 
+    # Shared by both tabs
+    course_picker = gr.Dropdown(
+        choices=[(c.label, code) for code, c in COURSES.items()],
+        value=next(iter(COURSES)),
+        label="Course",
+        interactive=True,
+    )
+
     with gr.Tabs():
         # Upload tab
         with gr.Tab("Upload Image"):
@@ -60,7 +71,7 @@ with gr.Blocks(title="EduTracker") as demo:
             upload_btn = gr.Button("Recognize", variant="primary")
             upload_btn.click(
                 fn=recognize_image,
-                inputs=upload_input,
+                inputs=[upload_input, course_picker],
                 outputs=[upload_topics, upload_details],
             )
 
@@ -78,7 +89,7 @@ with gr.Blocks(title="EduTracker") as demo:
             webcam_btn = gr.Button("Recognize", variant="primary")
             webcam_btn.click(
                 fn=recognize_image,
-                inputs=webcam_input,
+                inputs=[webcam_input, course_picker],
                 outputs=[webcam_topics, webcam_details],
             )
 
