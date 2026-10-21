@@ -1,0 +1,19 @@
+# TEMPLATE - copy this file to courses/<code>.yaml (e.g. courses/CSC311.yaml) and fill it in.
+# Files starting with "_" are ignored, so this one never shows up as a course.
+# Restart the app/CLI after adding or editing a course.
+
+code: CSC999                       # shown in the course picker, used by --course on the CLI
+name: Name Of The Course           # goes into the AI prompt, so be accurate
+
+# Optional: examples of "subtopics" so the model knows how specific to get
+example_subtopics: ["Some specific concept", "Another one"]
+
+topics:
+  - key: some_topic                # unique id inside this course, lowercase_with_underscores
+    label: "Some Topic"            # human readable name, this is what the user sees
+    description: "One or two sentences on what this topic covers."   # optional
+    visual_cues:                   # optional, what this topic looks like on a whiteboard
+      - "Something you would see"
+
+  - key: another_topic
+    label: "Another Topic"
