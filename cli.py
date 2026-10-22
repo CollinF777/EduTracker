@@ -1,7 +1,8 @@
 '''
 Okay this is just the command line interface and theres a few ways to use it
 
-python cli.py photo.jpg
+python cli.py photo.jpg -- course CSC311       (course can be left out if theres only one)
+python cli.py --list-courses
 python cli.py whiteboard.png --source whiteboard
 python cli.py img1.jpg img2.png img3.jpg
 python cli.py photo.jpg --no-preprocess
@@ -14,19 +15,32 @@ import argparse
 import json
 import sys
 from dotenv import load_dotenv
+
 load_dotenv()
 
+from edutracker.courses import load_courses
 from edutracker.recognizer import Recognizer
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Identify edutracker topics in whiteboard/handwritten photos."
+        description="Identify course topics in whiteboard/handwritten photos."
     )
     parser.add_argument(
         "images",
         nargs="+",
         metavar="IMAGE",
         help="Path(s) to image file(s) to recognize",
+    )
+    parser.add_argument(
+        "--course",
+        "-c",
+        default=None,
+        help="Course code to use, e.g. CSC311 (see --list-courses)",
+    )
+    parser.add_argument(
+        "--list-courses",
+        action="store_true",
+        help="Show the available courses and exit",
     )
     parser.add_argument(
         "--source",
@@ -53,8 +67,16 @@ def main():
 
     args = parser.parse_args()
 
+    if args.list_courses:
+        for course in load_courses().values():
+            print(course.label)
+        return
+    if not args.images:
+        parser.error("at least one image is required")
+
     try:
         recognizer = Recognizer(
+            course=args.course,
             model=args.model,
             preprocess=not args.no_preprocess,
             source_type=args.source,
