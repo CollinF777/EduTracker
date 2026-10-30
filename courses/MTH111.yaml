@@ -1,0 +1,91 @@
+code: MTH111
+name: College Algebra
+example_subtopics: ["slope-intercept form", "factoring by grouping", "quadratic formula", "completing the square", "difference quotient", "rationalizing the denominator", "change of base"]
+
+topics:
+  - key: linear_eq_ineq_one_var
+    label: "Linear Equations and Inequalities (One Variable)"
+    description: "Combining like terms, multi-step linear and absolute value equations, solving for a variable in a formula, linear/compound/absolute value inequalities, interval notation."
+    visual_cues:
+      - "Number lines with open or closed circles and shaded regions"
+      - "Interval notation such as (-3, 5]"
+      - "Absolute value bars in an equation or inequality"
+
+  - key: linear_two_var
+    label: "Linear Equations and Inequalities (Two Variables)"
+    description: "Graphing lines from intercepts or slope, slope formula, slope-intercept and point-slope form, parallel and perpendicular lines, graphing linear inequalities."
+    visual_cues:
+      - "Coordinate plane with a straight line and labeled intercepts"
+      - "Slope formula (y2 - y1)/(x2 - x1)"
+      - "y = mx + b or y - y1 = m(x - x1)"
+      - "Shaded half-plane with a solid or dashed boundary line"
+
+  - key: functions
+    label: "Functions and Function Notation"
+    description: "Relations vs functions, domain and range, evaluating f(x), algebra and composition of functions, one-to-one functions, inverses of linear functions."
+    visual_cues:
+      - "f(x) notation and f(g(x)) compositions"
+      - "Mapping diagrams or sets of ordered pairs"
+      - "Vertical line test on a graph"
+      - "A line graphed together with its inverse reflected over y = x"
+
+  - key: systems
+    label: "Systems of Linear Equations and Inequalities"
+    description: "Solving two-variable systems by graphing, substitution, and elimination; graphing systems of inequalities."
+    visual_cues:
+      - "Two equations stacked with a brace on the left"
+      - "Two lines intersecting at a labeled point"
+      - "Equations being added or multiplied to cancel a variable"
+      - "Overlapping shaded regions on a coordinate plane"
+
+  - key: exponents_polynomials
+    label: "Exponents and Polynomials"
+    description: "Properties of exponents, adding/subtracting/multiplying polynomials, special products, dividing polynomials including long division."
+    visual_cues:
+      - "Exponent rules such as x^a * x^b = x^(a+b)"
+      - "FOIL or box method for multiplying polynomials"
+      - "Polynomial long division layout"
+
+  - key: factoring
+    label: "Factoring"
+    description: "GCF, factoring by grouping, trinomials, difference of squares, sum and difference of cubes."
+    visual_cues:
+      - "Expressions rewritten as products of parentheses, e.g. (x + 3)(x - 2)"
+      - "a^2 - b^2 and a^3 +/- b^3 patterns"
+      - "Four-term polynomials split into two pairs"
+
+  - key: quadratics
+    label: "Quadratic Equations and Functions"
+    description: "Solving by factoring, square root property, completing the square, quadratic formula; discriminant; vertex and axis of symmetry; graphing parabolas; quadratic inequalities."
+    visual_cues:
+      - "The quadratic formula x = (-b +/- sqrt(b^2 - 4ac)) / 2a"
+      - "Parabola with labeled vertex and axis of symmetry"
+      - "(x + h)^2 terms from completing the square"
+      - "Sign chart or number line for a quadratic inequality"
+
+  - key: rational
+    label: "Rational Expressions, Equations and Functions"
+    description: "Domain of rational functions, reducing, operations on rational expressions, complex fractions, rational equations with domain check, difference quotients."
+    visual_cues:
+      - "Fractions with polynomials in the numerator and denominator"
+      - "Common denominators being built"
+      - "Stacked fractions (complex fractions)"
+      - "[f(x + h) - f(x)] / h"
+      - "Excluded values written next to a solution"
+
+  - key: radicals_complex
+    label: "Rational Exponents, Radicals and Complex Numbers"
+    description: "Radicals and rational exponents, simplifying and operating on radicals, rationalizing denominators, radical equations, powers of i, complex number arithmetic."
+    visual_cues:
+      - "Radical symbols and fractional exponents like x^(2/3)"
+      - "Conjugates used to rationalize a denominator"
+      - "The letter i and results in the form a + bi"
+
+  - key: exp_log
+    label: "Exponential and Logarithmic Equations and Functions"
+    description: "Evaluating exponential functions, solving exponential equations, converting between exponential and log form, log properties, solving log equations, change of base."
+    visual_cues:
+      - "log_b(x) and ln(x) notation"
+      - "Equations like b^y = x rewritten as y = log_b(x)"
+      - "Log properties for expanding or condensing"
+      - "Exponential growth or decay curve"
