@@ -115,29 +115,60 @@ def build_transcription_prompt(course: Course, topics: list[Topic], subtopics: l
     
     === RULES ===
     - Transcribe what is written. Do not add content, solve problems, finish unfinished work, or correct the writers mistakes (including math mistakes)
-    - Read top to bottom, left to right. If there are columns, finish one before starting the next
+    - Every written line is transcribed exactly once. Never skip a line, never repeat a line, and never replace a line with the one you expected to see.
+    In multi-step derivations, each step is its own "equation" block in the order written, even if a step looks like a typo
+    - Copy notation exactly as written (primes, overbars, dots, subscripts). Do not rewrite it into a more standard form
+    - FIRST look at the layout. Notes are often split into columns or regions. Finsh one region before starting the next, but 
+    if rows in two columns line up and are meant to be read as pairs (a law and its dual, a term and its definition, a question and its answer_
+    emit ONE "table" block with one row per pair and NO header, instead of two separate lists
+    - Keep emphasis and annotations as text in the position they appear: dates, page numbers, margin labels, arrows
+    and words on them ("equivalent"), and markers like ★ or a box around a line) write [boxed] or [starred] before the line)
     - If you are unsure of a word or symbol, give your best guess wrapped in double square brackets like [[guess]]
     - If something is completely unreadable write [illegible]
     - Write math as plain Unicode text a screen reader can handle. NOT LaTeX: x² − 5x + 6 = 0, √(x + 1), ≤, π, ½ use parentheses so fractions are unambiguous e.g. (x + 1)/(x - 2)
     - Keep the structure: headings, bullet lists, numbered lists, and tables (truth tables, K-maps, trace tables, etc)
-    - Diagrams, graphs, circuits and drawings become a "figure" block: one or two sentences describing the drawing plus any labels written on it, like alt text for someone who cant see it
+    - Diagrams, graphs, circuits and drawings become a "figure" block. Count the separate drawings and give each its own figure block:
+    say what it is (e.g. 3-input NOR gate, bubbles on inputs), list the labels written on it, and say what is drawn between
+    drawings (arrows, "equivalent"). Equations written next to a drawing are separate "equation" blocks placed right after that figure,
+    not inside its description
     
     === OUTPUT FORMAT ===
     Respond ONLY with one valid JSON object, no prose and no markdown fences:
     {{
         "title": "short title taken from the notes, or empty string if there isnt one",
         "blocks": [
-            {{"type": "heading", "text", "..."}},
-            {{"type": "paragraph", "text", "..."}},
-            {{"type": "bullet", "text", "..."}},
-            {{"type": "numbered", "text", "text without the number, numbering is added automatically"}},
-            {{"type": "equation", "text", "..."}},
-            {{"type", "figure", "text": "description of the drawing and its labels"}},
-            {{"type", "table", "header": true, "rows": [["col1", "col2"], ["a", "b:]]}}
+            {{"type": "heading", "text", "...", "rows": [], "header":false}},
+            {{"type": "paragraph", "text", "...", "rows": [], "header":false}},
+            {{"type": "bullet", "text", "...", "rows": [], "header":false}},
+            {{"type": "numbered", "text", "text without the number, numbering is added automatically", "rows": [], "header":false}},
+            {{"type": "equation", "text", "...", "rows": [], "header":false}},
+            {{"type", "figure", "text": "description of the drawing and its labels", "rows": [], "header":false}},
+            {{"type", "table", "header": true, "rows": [["col1", "col2"], ["a", "b:]], "header": true}}
         ]
     }}
     "type" must be one of: heading, paragraph, bullet, numbered, equation, figure, table
     "header" is true only when the first table row is a row of column names
+    "rows" is only used by tables, every other block uses an empty list
+    """
+
+'''
+Optional second pass. The model gets the image plus its own transcription and hunts for mistakes
+Models are much better at checking a transcription against an image than at getting it perfect in one shot
+'''
+def build_review_prompt(transcription_json: str) -> str:
+    return f"""You are proofreading a transcription of handwritten notes against the original image.
+    Here is the transcription as JSON:
+    {transcription_json}
+    
+    Go through the image region and compare it line by line. Look specifically for:
+    1. Lines that are missing, or that appear twice
+    2. Lines that were "fixed" or rewritten into what the writer probably meant instead of what is written
+    3. Columns or regions read in the wrong order, or rows that were meant to be pairs but got split into two lists
+    4. Wrong symbols (+ vs ·, primes and bars, 0 vs 0, A vs a)
+    5. Drawings merged together or miscounted, and annotations (dates, arrows, stars, boxes, margin labels) that were dropped
+    
+    Return the COMPLETE corrected transcription as one valid JSON object in the exact same format as the input, no prose and no markdown fences
+    Only change something if the image clearly disagrees with the transcription. If it is already right, return it unchanged.
     """
 
 # Same fence stripping idea s the recognizer, just in case the model adds fences anyways
