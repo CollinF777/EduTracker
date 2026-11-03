@@ -8,7 +8,7 @@ from openai import OpenAI
 
 from .preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
 from .courses import Course, Topic, get_course
-from .transcription import Transcription, build_transcription_prompt, parse_transcription
+from .transcription import Transcription, build_review_prompt, build_transcription_prompt, parse_transcription
 
 # Makes a dataclass to hold our results
 @dataclass
@@ -104,7 +104,7 @@ def _build_system_prompt(course: Course) -> str:
 
 # Subject recognizer using GPT-4o vision.
 class Recognizer:
-    def __init__(self, course: Course | str | None = None, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto"):
+    def __init__(self, course: Course | str | None = None, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto", refine: bool = False):
         key = api_key or os.environ.get("OPENAI_API_KEY")
         if not key:
             raise ValueError(
@@ -115,6 +115,8 @@ class Recognizer:
         self.course = course if isinstance(course, Course) else get_course(course)
         self._client = OpenAI(api_key=key)
         self._model = model
+        # Refine = extra proofreading call after transcription, slower and is more expensive but better quality
+        self._refine = refine
         self._preprocess = preprocess
         self._source_type = source_type
         self._system_prompt = _build_system_prompt(self.course)
@@ -213,23 +215,23 @@ class Recognizer:
     # Recognizes the topics and transcribes the handwriting, returns both so you can show the topic and write the doc
     # This costs a second api call which is why its seperate from recognize
     # context controls how much course info the transcription prompt gets: "none", "course", or "full"
-    def transcribe(self, image_path: str, context: str = "full") -> tuple[RecognitionResult, Transcription]:
+    def transcribe(self, image_path: str, context: str = "full", refine: bool | None = None) -> tuple[RecognitionResult, Transcription]:
         path = str(image_path)
         if not Path(path).exists():
             raise FileNotFoundError(f"Image not found: {path}")
 
         b64, source_type = image_to_base64(path, preprocess_image=self._preprocess, source_type=self._source_type)
         result = self._call_api(b64, source_type, label=path)
-        return result, self._transcribe_api(b64, result.topics, result.subtopics, context)
+        return result, self._transcribe_api(b64, result.topics, result.subtopics, context, refine)
 
     # Same as transcribe but for webcam frames and gradio uploads
-    def transcribe_frame(self, frame, label: str = "<frame>", context: str = "full") -> tuple[RecognitionResult, Transcription]:
+    def transcribe_frame(self, frame, label: str = "<frame>", context: str = "full", refine: bool | None = None) -> tuple[RecognitionResult, Transcription]:
         b64, source_type = self._encode_frame(frame)
         result = self._call_api(b64, source_type, label=label)
-        return result, self._transcribe_api(b64, result.topics, result.subtopics, context)
+        return result, self._transcribe_api(b64, result.topics, result.subtopics, context, refine)
 
     # Only transcription without recognition call, it lets us try each context level without redoing recognition
-    def transcribe_image(self, image_path: str, topics: list[Topic] | None = None, subtopics: list[str] | None = None, context: str = "full") -> Transcription:
+    def transcribe_image(self, image_path: str, topics: list[Topic] | None = None, subtopics: list[str] | None = None, context: str = "full", refine: bool | None = None) -> Transcription:
         b64, _ = image_to_base64(str(image_path), preprocess_image=self._preprocess, source_type=self._source_type)
         return self._transcribe_api(b64, topics or [], subtopics or [], context)
 
@@ -238,29 +240,94 @@ class Recognizer:
         img, source_type = preprocess_frame(frame, source_type=self._source_type)
         return to_base64_jpeg(img), source_type
 
-    # second call: read the handwriting, using what the first call found as context
-    def _transcribe_api(self, b64: str, topics: list[Topic], subtopics: list[str], context: str = "full") -> Transcription:
-        prompt = build_transcription_prompt(self.course, topics, subtopics, context)
+    '''
+    Structured outputs make the API guarantee the JSON matches this shape, this prevents issues where the model was returning broken JSON
+    strict mode needs every key listed in required, thats why text/rows/header are on every block
+    '''
+    _TRANSCRIPTION_SCHEMA = {
+        "type": "json_schema",
+        "json_schema": {
+            "name": "transcription",
+            "strict": True,
+            "schema": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["title", "blocks"],
+                "properties": {
+                    "title": {"type": "string"},
+                    "blocks": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": ["type", "text", "rows", "header"],
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "enum": ["heading", "paragraph", "bullet", "numbered", "equation", "figure", "table"]
+                                },
+                                "text": {"type": "string"},
+                                "rows": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "array",
+                                        "items": {"type": "string"}
+                                    }
+                                },
+                                "header": {"type": "boolean"},
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    }
+
+    # Sends one image plus a system prompt to the model and hands back the raw JSON string
+    def _vision_call(self, system: str, b64: str, user_text: str) -> str:
         response = self._client.chat.completions.create(
             model=self._model,
             temperature=0,
             max_tokens=4096,
-            response_format={"type": "json_object"},
+            response_format=self._TRANSCRIPTION_SCHEMA,
             messages=[ # type: ignore[arg-type]
-                {"role": "system", "content": prompt},
+                {"role": "system", "content": system},
                 {
                     "role": "user",
                     "content": [
                         {
                             "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"},
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{b64}",
+                                "detail": "high"
+                            }
                         },
-                        {"type": "text", "text": "Transcribe everything written in this image."},
+                        {
+                            "type": "text",
+                            "text": user_text
+                        },
                     ],
                 },
             ],
         )
-        return parse_transcription(response.choices[0].message.content or "")
+        return response.choices[0].message.content or ""
+
+    # second call: read the handwriting, using what the first call found as context
+    def _transcribe_api(self, b64: str, topics: list[Topic], subtopics: list[str], context: str = "full", refine: bool | None = None) -> Transcription:
+        # refine is None by default, True/False overrides it for this one call (app shares Recognizer across requests) so we pass is along per call instead of changing self._refine)
+        refine = self._refine if refine is None else refine
+        prompt = build_transcription_prompt(self.course, topics, subtopics, context)
+        raw = self._vision_call(prompt, b64, "Transcribe everything written in this image.")
+        transcription = parse_transcription(raw)
+
+        # Optional third call, only worth running if the first parse worked
+        if refine and not transcription.error:
+            review = build_review_prompt(raw)
+            reviewed = parse_transcription(self._vision_call(review, b64, "Proofread the transcription against this image and return the corrected JSON."))
+            # If the review call breaks, keep the first pass instead of making things worse
+            if not reviewed.error and reviewed.blocks:
+                return reviewed
+        return transcription
 
     # Send a base64 image to GPT-4o and return a RecognitionResult
     def _call_api(self, b64: str, source_type: str, label: str) -> RecognitionResult:
