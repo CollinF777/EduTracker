@@ -79,8 +79,18 @@ class Transcription:
             "error": self.error,
         }
 
+'''
+How much course info the prompt gets, this is mostly useful to see how much the context is helping
+none = no idea what the notes are about
+course = course name and its topic list
+full = course + the topics/subtopics the recognition step found (the normal setting)
+'''
+CONTEXT_LEVELS = ("none", "course", "full")
+
 # We give the model the course and detected topics as well the vocab for the course to give it more context
 def build_transcription_prompt(course: Course, topics: list[Topic], subtopics: list[str], context: str = "full") -> str:
+    if context not in CONTEXT_LEVELS:
+        raise ValueError(f"Context must be one of {CONTEXT_LEVELS}, got '{context}'")
     if topics:
         detected = "The recognition step found these topics in the image: " + ", ".join(t.label for t in topics) + "."
     else:
@@ -92,9 +102,16 @@ def build_transcription_prompt(course: Course, topics: list[Topic], subtopics: l
     if course.example_subtopics:
         vocab += ". Example terms: " + ", ".join(course.example_subtopics)
 
-    return f"""You are transcribing a photo of handwritten notes or a whiteboard into clean, accessible digital text
-    The student is taking {course.code} ({course.name}). {detected}
-    Course vocabulary, use it ONLY to pick plausible readings of unclear handwriting: {vocab}
+    lines = ["You are transcribing a photo of handwritten notes or a whiteboard into clean, accessible digital text"]
+    if context != "none":
+        student = f"The student is taking {course.code} ({course.name})."
+        if context == "full":
+            student += f" {detected}"
+        lines.append(student)
+        lines.append(f"Course vocabulary, use it ONLY to pick between plausible readings of unclear handwriting: {vocab}")
+    header = "\n    ".join(lines)
+
+    return f"""{header}
     
     === RULES ===
     - Transcribe what is written. Do not add content, solve problems, finish unfinished work, or correct the writers mistakes (including math mistakes)
