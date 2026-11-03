@@ -8,6 +8,7 @@ from openai import OpenAI
 
 from .preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
 from .courses import Course, Topic, get_course
+from .transcription import Transcription, build_transcription_prompt, parse_transcription
 
 # Makes a dataclass to hold our results
 @dataclass
@@ -208,6 +209,58 @@ class Recognizer:
         img, source_type = preprocess_frame(frame, source_type=self._source_type)
         b64 = to_base64_jpeg(img)
         return self._call_api(b64, source_type, label=label)
+
+    # Recognizes the topics and transcribes the handwriting, returns both so you can show the topic and write the doc
+    # This costs a second api call which is why its seperate from recognize
+    # context controls how much course info the transcription prompt gets
+    def transcribe(self, image_path: str, context: str = "full") -> tuple[RecognitionResult, Transcription]:
+        path = str(image_path)
+        if not Path(path).exists():
+            raise FileNotFoundError(f"Image not found: {path}")
+
+        b64, source_type = image_to_base64(path, preprocess_image=self._preprocess, source_type=self._source_type)
+        result = self._call_api(b64, source_type, label=path)
+        return result, self._transcribe_api(b64, result.topics, result.subtopics, context)
+
+    # Same as transcribe but for webcam frames and gradio uploads
+    def transcribe_frame(self, frame, label: str = "<frame>", context: str = "full") -> tuple[RecognitionResult, Transcription]:
+        b64, source_type = self._encode_frame(frame)
+        result = self._call_api(b64, source_type, label=label)
+        return result, self._transcribe_api(b64, result.topics, result.subtopics, context)
+
+    # Only transcription without recognition call, it lets us try each context level without redoing recognition
+    def transcribe_image(self, image_path: str, topics: list[Topic] | None = None, subtopics: list[str] | None = None, context: str = "full") -> Transcription:
+        b64, _ = image_to_base64(str(image_path), preprocess_image=self._preprocess, source_type=self._source_type)
+        return self._transcribe_api(b64, topics or [], subtopics or [], context)
+
+    # Encodes frame to base 64
+    def _encode_frame(self, frame) -> tuple[str, str]:
+        img, source_type = preprocess_frame(frame, source_type=self._source_type)
+        return to_base64_jpeg(img), source_type
+
+    # second call: read the handwriting, using what the first call found as context
+    def _transcribe_api(self, b64: str, topics: list[Topic] | None, subtopics: list[str] | None, context: str = "full") -> Transcription:
+        prompt = build_transcription_prompt(self.course, topics, subtopics, context)
+        response = self._client.chat.completions.create(
+            model=self._model,
+            temperature=0,
+            max_tokens=4096,
+            response_format={"type": "json_object"},
+            messages=[ # type: ignore[arg-type]
+                {"role": "system", "content": prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{b64}", "detail": "high"},
+                        },
+                        {"type": "text", "text": "Transcribe everything written in this image."},
+                    ],
+                },
+            ],
+        )
+        return parse_transcription(response.choices[0].message.content or "")
 
     # Send a base64 image to GPT-4o and return a RecognitionResult
     def _call_api(self, b64: str, source_type: str, label: str) -> RecognitionResult:
