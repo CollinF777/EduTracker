@@ -62,7 +62,7 @@ def _build_system_prompt(course: Course) -> str:
     side note: does anybody know why this comment is gray instead of green like the other multi line comments
     I dropped description because I dont want to spend a ton of tokens everytime and the model should know these things anyways
     """
-    topic_block = "\n".join(f' "{t.key}: "{t.label}"' for t in course.topics)
+    topic_block = "\n".join(f' "{t.key}": "{t.label}"' for t in course.topics)
     """
     Build a block of text that lists visual cues for each topic
     This tells the model what to look for in the image for each topic
@@ -104,7 +104,7 @@ def _build_system_prompt(course: Course) -> str:
 
 # Subject recognizer using GPT-4o vision.
 class Recognizer:
-    def __init__(self, course: Course | None = None, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto"):
+    def __init__(self, course: Course | str | None = None, api_key: str | None = None, model: str="gpt-4o", preprocess: bool = True, source_type: str = "auto"):
         key = api_key or os.environ.get("OPENAI_API_KEY")
         if not key:
             raise ValueError(
@@ -212,7 +212,7 @@ class Recognizer:
 
     # Recognizes the topics and transcribes the handwriting, returns both so you can show the topic and write the doc
     # This costs a second api call which is why its seperate from recognize
-    # context controls how much course info the transcription prompt gets
+    # context controls how much course info the transcription prompt gets: "none", "course", or "full"
     def transcribe(self, image_path: str, context: str = "full") -> tuple[RecognitionResult, Transcription]:
         path = str(image_path)
         if not Path(path).exists():
@@ -239,7 +239,7 @@ class Recognizer:
         return to_base64_jpeg(img), source_type
 
     # second call: read the handwriting, using what the first call found as context
-    def _transcribe_api(self, b64: str, topics: list[Topic] | None, subtopics: list[str] | None, context: str = "full") -> Transcription:
+    def _transcribe_api(self, b64: str, topics: list[Topic], subtopics: list[str], context: str = "full") -> Transcription:
         prompt = build_transcription_prompt(self.course, topics, subtopics, context)
         response = self._client.chat.completions.create(
             model=self._model,
@@ -267,6 +267,7 @@ class Recognizer:
         response = self._client.chat.completions.create(
             model=self._model,
             max_tokens=512,
+            temperature=0,
             # The other comment is just to silence an annoying ide pop up
             messages=[ # type: ignore[arg-type]
                 {"role": "system", "content": self._system_prompt},
