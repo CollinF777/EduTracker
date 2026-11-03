@@ -14,7 +14,7 @@ COURSES = load_courses()
 RECOGNIZERS = {code: Recognizer(course=course) for code, course in COURSES.items()}
 
 # Gradio calls this with a numpy array when user uploads or captures an image
-def recognize_image(image, course_code, transcribe=False) -> tuple[str, str, str | None]:
+def recognize_image(image, course_code, transcribe=False, refine=False) -> tuple[str, str, str | None]:
     if image is None:
         return "", "No image provided.", None
     if course_code not in RECOGNIZERS:
@@ -23,7 +23,7 @@ def recognize_image(image, course_code, transcribe=False) -> tuple[str, str, str
 
     transcription = None
     if transcribe:
-        result, transcription = recognizer.transcribe_frame(image, label="<upload>")
+        result, transcription = recognizer.transcribe_frame(image, label="<upload>", refine=refine)
     else:
         result = recognizer.recognize_frame(image, label="<upload>")
 
@@ -81,6 +81,12 @@ with gr.Blocks(title="EduTracker") as demo:
         value=False,
     )
 
+    # Only matters when transcribing, adds a proofreading call that catches skipped or duplicated lines
+    refine_box = gr.Checkbox(
+        label="Double-check the transcription (slower and uses an extra API call, best for dense notes or math) This does not work if transcription is not checked",
+        value=False,
+    )
+
     with gr.Tabs():
         # Upload tab
         with gr.Tab("Upload Image"):
@@ -98,7 +104,7 @@ with gr.Blocks(title="EduTracker") as demo:
             upload_btn = gr.Button("Recognize", variant="primary")
             upload_btn.click(
                 fn=recognize_image,
-                inputs=[upload_input, course_picker, transcribe_box],
+                inputs=[upload_input, course_picker, transcribe_box, refine_box],
                 outputs=[upload_topics, upload_details, upload_file],
             )
 
@@ -117,7 +123,7 @@ with gr.Blocks(title="EduTracker") as demo:
             webcam_btn = gr.Button("Recognize", variant="primary")
             webcam_btn.click(
                 fn=recognize_image,
-                inputs=[webcam_input, course_picker, transcribe_box],
+                inputs=[webcam_input, course_picker, transcribe_box, refine_box],
                 outputs=[webcam_topics, webcam_details, webcam_file],
             )
 
