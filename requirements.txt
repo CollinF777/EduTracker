@@ -1,6 +1,7 @@
-openai>=1.30.0
-pillow>=10.0.0
-opencv-python-headless>=4.9.0
-numpy>=1.26.0
-gradio>=6.0.0
-python-dotenv>=1.0.0
+gradio
+openai
+opencv-python
+numpy
+pillow
+python-dotenv
+pyyaml
