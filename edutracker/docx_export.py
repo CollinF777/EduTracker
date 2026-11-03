@@ -44,8 +44,8 @@ def _shade(cell, fill: str):
     shd.set(qn("w:val"), "clear")
     shd.set(qn("w:color"), "auto")
     shd.set(qn("w:fill"), fill)
-    # Adds the shade to each table cell prop (thats what tcPR means)
-    cell._tc.get_or_add_tcPR().append(shd)
+    # Adds the shade to each table cell prop (thats what tcPr means)
+    cell._tc.get_or_add_tcPr().append(shd)
 
 # used to make tables
 def _add_table(doc, rows: list[list[str]], header: bool):
@@ -60,7 +60,7 @@ def _add_table(doc, rows: list[list[str]], header: bool):
                 _shade(cell, "D9D9D9")
     # Marks the row as a header so screen readers can announce the column names
     if header:
-        trPr = table.row[0]._tr.get_or_add_trPr()
+        trPr = table.rows[0]._tr.get_or_add_trPr()
         trPr.append(OxmlElement("w:tblHeader"))
     # Breathing room so whatever is after the table isnt hugging it
     doc.add_paragraph()
