@@ -1,0 +1,72 @@
+code: CSC120
+name: Introduction to Computing
+example_subtopics: ["int vs double", "Scanner input", "else if chain", "for loop vs while loop", "String.substring", "pass by value", "array index out of bounds", "off-by-one error"]
+
+topics:
+  - key: variables_data_types
+    label: "Variables and Data Types"
+    description: "Declaring and initializing variables, primitive types (int, double, boolean, char), String, constants with final, assignment, arithmetic operators, integer division and modulus, type casting, operator precedence, and naming rules."
+    visual_cues:
+      - "Declarations like int x = 5; double price = 2.99; boolean done = false;"
+      - "Boxes or tables showing variable names, types, and current values"
+      - "Operators + - * / % and ++ -- +="
+      - "Casting such as (double) x or (int) y"
+      - "The keyword final next to a constant"
+
+  - key: user_input_output
+    label: "User Input and Output"
+    description: "Printing with System.out.print, println, and printf with format specifiers. Reading input with the Scanner class (nextInt, nextDouble, next, nextLine), importing java.util.Scanner, and the nextLine newline pitfall."
+    visual_cues:
+      - "import java.util.Scanner;"
+      - "Scanner input = new Scanner(System.in);"
+      - "System.out.println(...) and System.out.printf(\"%d %.2f %s\", ...)"
+      - "Sample program output or console input drawn in a box"
+      - "Escape sequences such as \\n and \\t"
+
+  - key: conditionals
+    label: "Conditionals"
+    description: "Making decisions with if, if/else, else if chains, and nested if statements. Relational operators (==, !=, <, >, <=, >=), logical operators (&&, ||, !), switch statements, and comparing Strings with .equals()."
+    visual_cues:
+      - "if (...) { } else if (...) { } else { } blocks"
+      - "Ternary operators, ? : "
+      - "Flowchart with diamond decision shapes and yes/no arrows"
+      - "Logical operators && || !"
+      - "switch with case labels and break"
+      - "Truth tables for AND/OR/NOT"
+
+  - key: loops
+    label: "Loops"
+    description: "Repetition with while, do-while, and for loops. Loop counters, accumulators, sentinel values, nested loops, break and continue, tracing loop iterations, and infinite loops and off-by-one errors."
+    visual_cues:
+      - "for (int i = 0; i < n; i++) headers"
+      - "while (...) and do { } while (...);"
+      - "Trace table with columns for iteration, i, and sum"
+      - "Nested loops printing patterns of stars or number grids"
+      - "Arrows showing the flow back to the top of the loop"
+
+  - key: strings
+    label: "Strings"
+    description: "String objects and their methods: length, charAt, substring, indexOf, equals, equalsIgnoreCase, compareTo, toUpperCase, toLowerCase, trim, replace. String concatenation, immutability, and looping through characters."
+    visual_cues:
+      - "String s = \"Hello\"; followed by method calls like s.charAt(1)"
+      - "Characters drawn in boxes with index numbers 0, 1, 2, ... beneath"
+      - "substring(start, end) examples with the resulting text"
+      - "Comparison of == versus .equals()"
+
+  - key: methods
+    label: "Methods"
+    description: "Defining and calling methods, method headers (access modifier, static, return type, name, parameters), parameters and arguments, return values versus void, method overloading, variable scope, and pass by value. Breaking a program into reusable pieces."
+    visual_cues:
+      - "public static int add(int a, int b) { return a + b; }"
+      - "Arrows from a method call to its definition"
+      - "Trace of a call stack or values passing into parameters"
+      - "void vs a return type, and the return keyword"
+      - "main method calling other methods"
+
+  - key: arrays
+    label: "Arrays"
+    description: "Declaring, creating, and initializing arrays, indexing from 0, the length field, traversing with for and enhanced for loops, common algorithms (sum, max/min, search, count), passing arrays to methods, and ArrayIndexOutOfBoundsException. May include 2D arrays."
+    visual_cues:
+      - "int[] nums = new int[5]; or int[] a = {3, 1, 4};"
+      - "Row of boxes with index numbers above and values inside"
+      - "arr[i] and arr.length"
