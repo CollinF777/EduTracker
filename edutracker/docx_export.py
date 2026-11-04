@@ -66,7 +66,7 @@ def _add_table(doc, rows: list[list[str]], header: bool):
     doc.add_paragraph()
 
 # Saves the docx, recognitionresult is optional, if its there its just used for info under the title
-def save_docx(transcription: Transcription, path: str | Path, *, course: Course | None = None, result = None,) -> Path:
+def save_docx(transcription: Transcription, path: str | Path, *, course: Course | None = None, result = None, plain: bool = False) -> Path:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -80,25 +80,25 @@ def save_docx(transcription: Transcription, path: str | Path, *, course: Course 
     normal.font.size = Pt(12)
     normal.paragraph_format.space_after = Pt(6)
     normal.paragraph_format.line_spacing = 1.15
+    if not plain:
+        # Level 0 means its a title style
+        doc.add_heading(transcription.title or "Transcribed notes", level=0)
 
-    # Level 0 means its a title style
-    doc.add_heading(transcription.title or "Transcribed notes", level=0)
+        # Small info line including course, detected topics, where a pic came from
+        info = []
+        if course:
+            info.append(course.label)
+        if result is not None and result.topics:
+            info.append("Topics: " + ", ".join(t.label for t in result.topics))
+        if result is not None and not str(result.image_path).startswith("<"):
+            info.append("Source: " + Path(result.image_path).name)
+        if info:
+            p = doc.add_paragraph()
+            _add_text(p, " | ".join(info), italic=True, size=10)
+            for run in p.runs:
+                run.font.color.rgb = RGBColor(0x59, 0x59, 0x59)
 
-    # Small info line including course, detected topics, where a pic came from
-    info = []
-    if course:
-        info.append(course.label)
-    if result is not None and result.topics:
-        info.append("Topics: " + ", ".join(t.label for t in result.topics))
-    if result is not None and not str(result.image_path).startswith("<"):
-        info.append("Source: " + Path(result.image_path).name)
-    if info:
-        p = doc.add_paragraph()
-        _add_text(p, " | ".join(info), italic=True, size=10)
-        for run in p.runs:
-            run.font.color.rgb = RGBColor(0x59, 0x59, 0x59)
-
-    if transcription.uncertain_count:
+    if transcription.uncertain_count and not plain:
         p = doc.add_paragraph()
         _add_text(p, "Highlighted text was hard to read. Please check it against the original.", italic=True, size=10)
 

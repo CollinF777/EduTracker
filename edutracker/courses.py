@@ -7,6 +7,12 @@ from pathlib import Path
 # just put in the same format as the template im gonna make
 import yaml
 
+# Special value for "no course", this allows EduTracker to be used just for transcription
+NO_COURSE = "none"
+
+def is_no_course(code) ->  bool:
+    return isinstance(code, str) and code.strip().lower() == NO_COURSE
+
 # Courses is meant to be at the top level in a folder called courses but this can be changed with a env var
 COURSES_DIR = Path(os.environ.get("EDUTRACKER_COURSES_DIR", Path(__file__).resolve().parent.parent / "courses"))
 
@@ -41,7 +47,7 @@ def _load_course(path: Path) -> Course:
     try:
         data = yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as e:
-        raise ValueError(f"{path.name}: inva;od  YAML ({e})") from e
+        raise ValueError(f"{path.name}: invalid  YAML ({e})") from e
 
     if not isinstance(data, dict):
         raise ValueError(f"{path.name}: expected 'code', 'name', and 'topics' at the top level")

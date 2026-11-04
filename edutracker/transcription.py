@@ -50,6 +50,25 @@ class Transcription:
             total += sum(len(UNCERTAIN_PATTERN.findall(c)) for c in cells)
         return total
 
+    '''
+    This is being added for evaluation purposes for the ACM paper being written
+    Its just the words that were written so they can be scored against a typed copy of the notes
+    No figure descriptions (they arent handwriting, theyre written by the model), no list marks,
+    and uncertainty markers are stripped so [[guess]] counts as the guess
+    '''
+    def plain_text(self) -> str:
+        parts = []
+        for b in self.blocks:
+            if b.type == "figure":
+                continue
+            if b.type == "table":
+                parts.extend(cell for row in b.rows for cell in row)
+            else:
+                parts.append(b.text)
+        text = " ".join(parts)
+        text = re.sub(r"\[\[(.+?)\]\]", r"\1", text)
+        return text.replace("[illegible]", "").strip()
+
     def to_text(self) -> str:
         # Plain text version for terminal
         lines = [self.title, ""] if self.title else []
@@ -91,19 +110,24 @@ CONTEXT_LEVELS = ("none", "course", "full")
 def build_transcription_prompt(course: Course, topics: list[Topic], subtopics: list[str], context: str = "full") -> str:
     if context not in CONTEXT_LEVELS:
         raise ValueError(f"Context must be one of {CONTEXT_LEVELS}, got '{context}'")
-    if topics:
-        detected = "The recognition step found these topics in the image: " + ", ".join(t.label for t in topics) + "."
-    else:
-        detected = f"No {course.code} topic was detected, so the image may be unrelated to the course. Transcribe it anyways to be safe."
-    if subtopics:
-        detected += " Specific concepts spotted: " + ", ".join(subtopics) + "."
-
-    vocab = "; ".join(t.label for t in course.topics)
-    if course.example_subtopics:
-        vocab += ". Example terms: " + ", ".join(course.example_subtopics)
+    if course is None:
+        context = "none"
 
     lines = ["You are transcribing a photo of handwritten notes or a whiteboard into clean, accessible digital text"]
+
     if context != "none":
+        if topics:
+            detected = "The recognition step found these topics in the image: " + ", ".join(
+                t.label for t in topics) + "."
+        else:
+            detected = f"No {course.code} topic was detected, so the image may be unrelated to the course. Transcribe it anyways to be safe."
+        if subtopics:
+            detected += " Specific concepts spotted: " + ", ".join(subtopics) + "."
+
+        vocab = "; ".join(t.label for t in course.topics)
+        if course.example_subtopics:
+            vocab += ". Example terms: " + ", ".join(course.example_subtopics)
+
         student = f"The student is taking {course.code} ({course.name})."
         if context == "full":
             student += f" {detected}"

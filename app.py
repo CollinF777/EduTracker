@@ -3,15 +3,19 @@ import tempfile
 
 import gradio as gr
 from dotenv import load_dotenv
+from markdown_it.cli.parse import interactive
+
 load_dotenv()
 
-from edutracker.courses import load_courses
+from edutracker.courses import NO_COURSE, load_courses
 from edutracker.recognizer import Recognizer
 from edutracker.docx_export import docx_path_for, save_docx
 
 COURSES = load_courses()
 # Initialize a recognizer for each course on startup which will be used across requests
 RECOGNIZERS = {code: Recognizer(course=course) for code, course in COURSES.items()}
+# The no course option has its own recognizer with no course since it can only transcribe
+RECOGNIZERS[NO_COURSE] = Recognizer(course=NO_COURSE)
 
 # Gradio calls this with a numpy array when user uploads or captures an image
 def recognize_image(image, course_code, transcribe=False, refine=False) -> tuple[str, str, str | None]:
@@ -20,6 +24,15 @@ def recognize_image(image, course_code, transcribe=False, refine=False) -> tuple
     if course_code not in RECOGNIZERS:
         return "", "Please select a course first", None
     recognizer = RECOGNIZERS[course_code]
+
+    # No course, you skip the recognition completely and just transcribe
+    if course_code == NO_COURSE:
+        transcription = recognizer.transcribe_frame_only(image, refine=refine)
+        docx_file = str(save_docx(transcription, docx_path_for("<upload>", tempfile.mkdtemp()), plain=True,))
+        details = "Transcription saved, download it below."
+        if transcription.uncertain_count:
+            details += f" {transcription.uncertain_count} uncertain spot(s) are highlighted in yellow"
+        return "", details, docx_file
 
     transcription = None
     if transcribe:
@@ -70,7 +83,7 @@ with gr.Blocks(title="EduTracker") as demo:
 
     # Shared by both tabs
     course_picker = gr.Dropdown(
-        choices=[(c.label, code) for code, c in COURSES.items()],
+        choices=[("No course (transcribe only)", NO_COURSE)] + [(c.label, code) for code, c in COURSES.items()],
         value=next(iter(COURSES)),
         label="Course",
         interactive=True,
@@ -80,6 +93,14 @@ with gr.Blocks(title="EduTracker") as demo:
         label="Also transcribe the handwriting into Word document (note: this will take longer)",
         value=False,
     )
+
+    # With no course, the entire point is transcription so we lock the box on
+    def _on_course_change(code):
+        if code == NO_COURSE:
+            return gr.update(value=True, interactive=False)
+        return gr.update(value=False, interactive=True)
+
+    course_picker.change(fn=_on_course_change, inputs=course_picker, outputs=transcribe_box)
 
     # Only matters when transcribing, adds a proofreading call that catches skipped or duplicated lines
     refine_box = gr.Checkbox(

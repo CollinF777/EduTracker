@@ -7,7 +7,7 @@ import cv2
 from openai import OpenAI
 
 from .preprocessing import image_to_base64, preprocess_frame, to_base64_jpeg
-from .courses import Course, Topic, get_course
+from .courses import Course, Topic, get_course, is_no_course
 from .transcription import Transcription, build_review_prompt, build_transcription_prompt, parse_transcription
 
 # Makes a dataclass to hold our results
@@ -79,7 +79,7 @@ def _build_system_prompt(course: Course) -> str:
     # This is the ai prompt, if cues get added back in them add it below topic taxonomy
     return f"""You are an expert teaching assistant for {course.code} ({course.name}). 
     
-    Your task is to look at the photo provided (whiteboard, handwritten paper, etc) and identify which CSC311
+    Your task is to look at the photo provided (whiteboard, handwritten paper, etc) and identify which {course.code}
     topic(s) are visible. THe image may be noisy, at an angle, or partially legible - do your best
     
     === TOPIC TAXONOMY ===
@@ -95,7 +95,7 @@ def _build_system_prompt(course: Course) -> str:
     }}
     
     Rules:
-    - "topics" must be a list of keys from taxonomy above (empty list [] if nothing matches CSC311)
+    - "topics" must be a list of keys from taxonomy above (empty list [] if nothing matches {course.code})
     - "confidence" values: 0.9+ = very clear, 0.7-0.9 = reasonable clear, 0.5-0.7 = partially visible/uncertain
     - "subtopics" are specific named concepts spotted {examples}
     - If the image is unreadable or clearly unrelated to {course.code}, return topics: []
@@ -112,14 +112,20 @@ class Recognizer:
                 "or pass api_key= to Recognizer()."
             )
 
-        self.course = course if isinstance(course, Course) else get_course(course)
+        # course = None / "none" means no course so no topic recognition, only transcription
+        if isinstance(course, Course):
+            self.course = course
+        elif is_no_course(course):
+            self.course = None
+        else:
+            self.course = get_course(course)
         self._client = OpenAI(api_key=key)
         self._model = model
         # Refine = extra proofreading call after transcription, slower and is more expensive but better quality
         self._refine = refine
         self._preprocess = preprocess
         self._source_type = source_type
-        self._system_prompt = _build_system_prompt(self.course)
+        self._system_prompt = _build_system_prompt(self.course) if self.course else ""
 
     # Recognize topics from a single image file
     def recognize(self, image_path: str) -> RecognitionResult:
@@ -233,7 +239,12 @@ class Recognizer:
     # Only transcription without recognition call, it lets us try each context level without redoing recognition
     def transcribe_image(self, image_path: str, topics: list[Topic] | None = None, subtopics: list[str] | None = None, context: str = "full", refine: bool | None = None) -> Transcription:
         b64, _ = image_to_base64(str(image_path), preprocess_image=self._preprocess, source_type=self._source_type)
-        return self._transcribe_api(b64, topics or [], subtopics or [], context)
+        return self._transcribe_api(b64, topics or [], subtopics or [], context, refine)
+
+    # Same as transcribe image but for gradio uploads/webcam frames. We use this for the no course option
+    def transcribe_frame_only(self, frame, refine: bool | None = None) -> Transcription:
+        b64, _ = self._encode_frame(frame)
+        return self._transcribe_api(b64, [], [], "none", refine)
 
     # Encodes frame to base 64
     def _encode_frame(self, frame) -> tuple[str, str]:
@@ -331,6 +342,8 @@ class Recognizer:
 
     # Send a base64 image to GPT-4o and return a RecognitionResult
     def _call_api(self, b64: str, source_type: str, label: str) -> RecognitionResult:
+        if self.course is None:
+            raise ValueError("Topic recognition needs a course. With no course we use transcribe_image or transcribe_frame_only")
         response = self._client.chat.completions.create(
             model=self._model,
             max_tokens=512,
