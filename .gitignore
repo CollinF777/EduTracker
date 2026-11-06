@@ -27,7 +27,4 @@ env/
 Thumbs.db
 
 # Test images
-*.jpg
-*.jpeg
-*.png
-*.webp
+Test_Images/
