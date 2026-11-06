@@ -1,0 +1,10 @@
+x ⊕ y = (x ⊙ y)'
+x ⊕ y =(xy + x'y')'
+=(x'+y')·(x''+y'')
+=(x'+y')·(x+y)
+=x'x + x'y + y'x + y'y
+= 0 + x'y + y'x + 0.
+Prove: A →(AB)'=1 ↲Demorgans
+A+A'+B'=`.↲since A'+A=1
+1+B'=1↲since any X+1=1 
+1-1.

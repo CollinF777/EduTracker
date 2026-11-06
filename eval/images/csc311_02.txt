@@ -1,0 +1,37 @@
+CSC311 10-6-25 9:10am
+input x
+1/0 → output y
+Use 2 D.f.f.s to design:
+input State output
+X QA QB QA^n+1 QB^n+1 Y DA DB
+0 0 0 0 0 0 0 0
+0 0 1 0 0 1 0 0
+0 1 0 0 0 1 0 0
+0 1 1 0 0 1 0 0
+1 0 0 0 1 0 0 1
+1 0 1 1 1 0 1 1
+1 1 0 1 0 0 1 0
+1 1 1 1 0 0 1 0
+D.f.f excitation table:
+Qn Qn+1 D
+0 0 0
+0 1 1
+1 0 0
+1 1 1
+For DA: DA = xQB + xQA = x(QA+QB)
+QAQB X 00 01 11 10
+0 0 0 0 0
+1 0 1 1 1
+For DB: DB = xQA'
+QAQB X 00 01 11 10
+0 0 0 0 0
+1 1 1 0 0
+For y: y = x'QB + x'QA = x'(QA+QB)
+QAQB X 00 01 11 10
+0 0 1 1 1
+1 0 0 0 0
+Figure out I/O, T.T.
+Follow state machine
+Excitation table for internal inputs
+K-map for output
+*T.T. can be used to infer excitation table*

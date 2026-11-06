@@ -1,0 +1,23 @@
+CSC311 9-29-25 9:05am
+Known: SR Latch
+S R Qn+1
+0 0 Qn ← Previous state
+0 1 0 ← Reset 0
+1 0 1 ← Set 1
+1 1 X ← bad logic
+Sequential Circuit (w/ clock)
+Find: SR Flip Flop
+S-R Latch is between sequential & combinational circuit
+clock R S R1 S1 Qn+1
+0 0 0 0 0 Qn
+0 0 1 0 0 Qn
+0 1 0 0 0 Qn
+0 1 1 0 0 Qn
+1 0 0 0 0 Qn
+1 0 1 0 1 1
+1 1 0 1 0 0
+1 1 1 1 1 X ← undefined behavior
+SR Flip Flop = SR Latch + Clock
+When clock =0, states are kept.
+When clock =1, S-R f.f. enabled & functions
+(it becomes writable).

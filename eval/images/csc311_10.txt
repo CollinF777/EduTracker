@@ -1,0 +1,39 @@
+CSC311 10-12-25 9:10am
+bc PC represents instruction, NOT address; depends on system
+D4 = 100
+why is PC incremented by 1 if each instruction is 2-bytes long?
+σ= 1/(1-e^-z)
+Instruction Index vs. Address
+0 BUN (1120)10 → Translate to Hex instruction:
+0100 = (4)16
+(0x4460)16
+1120 = 1024 + 96 → 64 + 32
+= 2^10 + 2^6 + 2^5 = (0100 0110 0000)2 = (460)16
+Memory Layout:
+10 0x256
+0 BUN 0x555
+PC after T4 555
+FE0 1 BUN 0x10
+What will happen after 1 BUN 10 runs?
+The program will jump to 0x256,
+T0: AR ← PC (0xFE0)
+T1: IR ← M[AR] (0xC00A), PC ← PC+1 (0xFE1)
+T2: AR ← IR(0-11) (0x00A), I ← IR(15) (1),
+D0...D7 ← Decode IR(12-14) (D4)
+T3: AR ← M[AR] (256) // Before T4, PC=FE1 (instruction)
+T4: PC ← AR (256) =FE2 (address)
+R (interrupt register) = 1
+Doesn't take CPU cycle (same w/ D7, I) because it is
+a simple boolean condition check; R has a value before
+T0; it is hardware
+T0: AR ← 0, TR ← PC
+T1: M[AR] ← TR, PC ← 0
+Interrupt Flags
+T2: PC ← PC+1, IEN ← 0, R ← 0, SC ← 0
+R signals that the
+current main program execution
+should be halted & the
+I/O program should start
+So: if R=1, store current
+address, jump to I/O, jump
+back to stored addr.

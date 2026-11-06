@@ -1,0 +1,34 @@
+10-8-25 CSC311 9:10am
+10/17 EXAM DAY, similar Q in exam
+Use 2 J.K. f.f.s to design this counter
+Excitation for J.K. f.f.:
+Qn Qn+1 J K
+0 0 0 X
+0 1 1 X
+1 0 X 1
+1 1 X 0
+X QnA QnB Qn+1A Qn+1B JnA KnA JnB KnB
+0 0 0 0 0 0 X 0 X
+0 0 1 0 1 0 X X 0
+0 1 0 1 0 X 0 0 X
+0 1 1 1 1 X 0 X 0
+1 0 0 0 1 0 X 1 X
+1 0 1 1 0 1 X X 1
+1 1 0 1 1 X 0 1 X
+1 1 1 0 1 X 1 X 0
+K-map JA: JA = xQnB
+QnAQnB X 00 01 11 10
+0 0 0 X X
+1 0 1 X X
+K-map JB: JB = X
+QnAQnB X 00 01 11 10
+0 0 X X 0
+1 1 X X 1
+K-map KA: KA = xQnB
+QnAQnB X 00 01 11 10
+0 X X 0 0
+1 X X 1 0
+K-map KB: x QnA'
+QnAQnB X 00 01 11 10
+0 X 0 0 X
+1 X 1 0 X

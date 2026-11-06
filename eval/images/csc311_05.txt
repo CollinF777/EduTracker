@@ -1,0 +1,29 @@
+★ 67 = simple ★
+Prove A+B = (A+B+C)(A+B+C')
+x
+x
+= (x+c)(x+c')
+= x + cc'
+= x+1 = x = A+B .
+Prove (A⊕B)' = A⊙B
+A⊕B = AB' + A'B,
+A⊙B = AB + A'B'. So,
+(AB'+ A'B)' = (A'+B)(A+B')
+= A'A + A'B' + BA + BB'
+= A'B' + AB
+Transistor logic (& transistor logic gates)
+NAND & NOR: apply k-map simplification & bool algebra
+to design nand/nor circuits
+F(w,x,y,z) = Σ{2,3,4,5,6,7,11,14,15}
+wx yz 00 01 11 10
+00 0 0 1 1
+01 1 1 1 1
+11 0 0 1 1
+10 0 0 1 0
+F = w'x + yz + w'y + xy
+F'' = [w'x + yz + w'y + xy]''
+= [(w'x)'(yz)'(w'y)'(xy)']' ← NAND
+F' = wy' + x'y' + wx'z'
+F = (F')' = (w'+y)(x+y)(w'+x+z)
+F = F'' = [(w'+y)(x+y)(w'+x+z)]''
+NOR → = [(w'+y)' + (x+y)' + (w'+x+z)']'

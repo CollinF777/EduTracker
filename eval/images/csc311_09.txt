@@ -1,0 +1,14 @@
+CSC311 11-7-25 9:10am LDA → Load to AC
+In a simple CS, essential CPU registers are AR,
+PC, DR, AC, IR, TR, and I/O registers.
+Running instruction from mem → CPU includes 3 phases:
+at least
+Fetch, decode, execute.
+Decoding takes place in IR register.
+Fetching takes 2 CPU cycles. (T0, T1)
+Decoding takes 1 CPU cycle. (T2)
+ADD takes 6 CPU cycles.
+AND takes 6 CPU cycles.
+STA takes 5 CPU cycles.
+LDA takes 6 CPU cycles.
+BUN takes 5 CPU cycles.

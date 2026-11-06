@@ -1,0 +1,24 @@
+9-15-25 CSC311 9:05am
+F(A,B,C,D) = Σ{0,1,2,5,8,9,10}
+CD AB 00 01 11 10
+00 1 1 0 1
+01 0 1 0 0
+11 0 0 0 0
+10 1 1 0 1
+F = B'C' + A'C'D + B'CD'
+Not as large as possible
+CD AB 00 01 11 10
+00 1 1 0 1
+01 0 1 0 0
+11 0 0 0 0
+10 1 1 0 1
+F = B'C' + B'D' + A'C'D
+SOP
+Given F = B'C' + B'D' + A'C'D, use all NAND gates to rewrite F.
+NAND = (AB)'
+F = F''
+= (B'C' + B'D' + A'C'D)''
+= [(B'C')' · (B'D')' · (A'C'D)']'
+Use k-map to find F.
+F = (F')'.
+F' in the format of NAND, keeping products.

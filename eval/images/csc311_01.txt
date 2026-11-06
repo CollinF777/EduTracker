@@ -1,0 +1,26 @@
+CSC434 Asgn 1
+C' + A'BC = A'B'C' + A'BC' + ABC + AB'C' + ABC'
+= A'C'(B'+B) + A'BC + AC'(B'+B)
+= A'C' + A'BC + AC'
+= C'(A'+A) + A'BC
+= C' + A'BC .
+X+YZ = (X+Y)(X+Z)
+= X(X+Z) + Y(X+Z)
+= X + YX + YZ
+= X(1+Y) + YZ
+= X + YZ .
+X+YZ = (X+Y)(X+Z)
+= ((X+Y)' + (X+Z)')'
+= ((X'Y') + (X'Z'))'
+= (X'(Y'+Z'))'
+= ((X+YZ)')'
+= X+YZ .
+FORGOT #4
+A⊕B = (A⊙B)'
+= (AB + A'B')'
+= (AB)'(A'B')'
+= (A'+B')(A+B)
+= A'A + A'B + B'A + B'B
+= 0 + A'B + B'A + 0
+= A'B + AB'
+= A⊕B .
