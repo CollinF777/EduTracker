@@ -59,5 +59,5 @@ def bootstrap_diff_ci(pairs: list[tuple[int, int, int]], n_boot: int = 5000, see
         return safe_div(sum(p[0] for p in sample), length) - safe_div(sum(p[1] for p in sample), length)
 
     rng = random.Random(seed)
-    boots = sorted(diff([rng.choices(pairs) for _ in pairs]) for _ in range(n_boot))
+    boots = sorted(diff([rng.choice(pairs) for _ in pairs]) for _ in range(n_boot))
     return diff(pairs), boots[int(0.025 * n_boot)], boots[int(0.975 * n_boot) -1]
