@@ -1,0 +1,23 @@
+Linear Equations and Inequalities (1 variable)
+Topic: Solving Multi-Step Linear Equations
+Definition: A linear equation is an equation where the variable
+has an exponent of 1. The goal is to isolate the
+variable on one side.
+Important Rules:
+Distribute before combining like terms
+Combine like terms
+Use inverse operations to isolate the variable
+Whatever operation you preform on one side must
+also be preformed on the other
+Example:
+Solve: 3(2x-4)+5=17
+Step 1: Distribute.
+6x-12+5=17
+Step 2: Combine like terms
+6x-7=17
+Step 3: Add 7 to both sides
+6x=24
+Step 4: Divide by 6
+x=4
+Key Takeaway: Always isolate the variable
+using inverse operations

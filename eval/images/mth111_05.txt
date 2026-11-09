@@ -1,0 +1,4 @@
+log_b(x) = log(x)/log(b) or ln(x)/ln(b)
+log_2(8) = log(8)/log(2)
+↳ 0.9031/0.3010 or 3
+(2^3 = 8) ✓

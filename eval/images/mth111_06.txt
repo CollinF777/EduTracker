@@ -1,0 +1,16 @@
+Exponents and Polynomials
+Topic: Properties of Exponents
+Definition: Exponents represent repeated multiplication.
+Exponents rules make it easier to simplify algebraic
+expressions.
+Important Rules:
+Rule Formula
+Product x^a x^b = x^(a+b)
+Quotient x^a / x^b = x^(a-b)
+Power (x^a)^b = x^(ab)
+Zero x^0 = 1
+Negative x^(-a) = 1 / x^a
+Example: ((x^3)^2 · x^4) / x^5 → (x^6 · x^4) / x^5 → x^10 / x^5 = x^5
+Key Concepts: When multiplying like bases, add
+exponents. When dividing like bases, subtract
+exponents

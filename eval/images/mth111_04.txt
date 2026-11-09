@@ -1,0 +1,16 @@
+Linear Equations
+Slope-intercept form
+Formula: y = mx + b
+Definition: Slope-intercept is a way to write a linear
+equation that makes it easy to identify the slope and
+y-intercept
+m: slope
+b: y-intercept
+x: independent variable
+y: dependent variable
+Example: m=3, b=-2
+y = mx + b → y = 3x - 2
+m = (y2-y1)/(x2-x1) → m = (7-3)/(4-2) = 4/2 = 2
+Key point: Slope tells you how steep a line is,
+while the y-intercept tells you where it crosses
+the y-axis
