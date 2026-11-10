@@ -1,0 +1,7 @@
+int[] y = {1,2,3};
+This is also allowed for
+arrays in java but is
+typically used less often.
+Theres more things you can
+do with arrays but Dan
+said thats for 203.

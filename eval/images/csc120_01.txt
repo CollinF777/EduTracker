@@ -1,0 +1,10 @@
+// Integer
+int X = 7;
+//Double (decimal)
+double Y=6.7;
+//String
+String S= "Hello";
+// Characters
+Char c = 'c';
+//Constants
+final int TEST=4;

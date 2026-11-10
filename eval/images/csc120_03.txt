@@ -1,0 +1,9 @@
+if (Condition 1) {
+...
+}
+else if (Condition2){
+...
+}
+else {
+...
+}

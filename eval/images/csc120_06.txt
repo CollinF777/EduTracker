@@ -1,0 +1,6 @@
+import java.Util.Scanner;
+...
+Scanner input = new Scanner(System.in);
+int X= input.nextInt();
+double y=input.nextDouble();
+String S=input.next();

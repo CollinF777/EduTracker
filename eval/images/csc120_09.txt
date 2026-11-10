@@ -1,0 +1,6 @@
+String S= "Hello";
+S.charat(1);
+is e not H, this is
+because in coding, they
+start counting at 0
+instead of 1.

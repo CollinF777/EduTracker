@@ -1,0 +1,11 @@
+int add(int X, int Y){
+return X+Y;
+}
+double divite(double X,double Y){
+if (Y==0){
+return;
+return X/Y;
+}
+Void hello(String name){
+System.out.Printh("Hello "+ name)
+}

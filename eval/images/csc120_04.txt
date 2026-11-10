@@ -1,0 +1,5 @@
+bool x=(Condition? ifTrue: ifFalse)
+if (x){
+...
+else {
+}
